@@ -1,9 +1,10 @@
 import os
+import requests
 import asyncio
 from aiogram import Bot, Dispatcher, types,F
 from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, FSInputFile
-from config import TOKEN
+from config import TOKEN, WEATHER_API_KEY
 import random
 
 bot = Bot(token=TOKEN)
@@ -35,6 +36,29 @@ async def photo(message: Message):
 #     list = ["https://i.imgur.com/pwpWaWu.jpg", "https://i.imgur.com/5GtBn6P.jpg", "https://i.imgur.com/5GtBn6P.jpg"]
 #     rand_photo = random.choice(list)
 #     await message.answer_photo(photo=rand_photo, caption='Это супер крутая картинка')
+
+# Функция для получения прогноза погоды
+def get_weather(city):
+    url = f"https://api.openweathermap.org/data/2.5/weather?q={city}&appid={WEATHER_API_KEY}&units=metric"
+    response = requests.get(url, timeout=10)
+    data = response.json()
+
+    if response.status_code == 200:
+        weather_description = data['weather'][0]['description']
+        temperature = data['main']['temp']
+        city_name = data['name']
+        country = data['sys']['country']
+        return f"Погода в {city_name}, {country}:\nТемпература: {temperature}°C\nОписание: {weather_description}"
+    else:
+        return "Не удалось получить данные о погоде. Проверьте название города."
+
+# Обработчик команды /weather
+@dp.message(Command('weather'))
+async def weather(message: Message):
+    city = "Moscow"  # Вы можете заменить этот город на любой другой
+    weather_info = get_weather(city)
+    await message.answer(weather_info)
+
 
 
 @dp.message(F.photo)
