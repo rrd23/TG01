@@ -1,5 +1,0 @@
-# config.py
-
-TOKEN = "7131334586:AAG1l7bxTx1EvZTJ0abnJPPSgVvDbGj9Omc"
-
-WEATHER_API_KEY = 'fb84801abe556d0fa5a829305ddd718d'
