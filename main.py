@@ -6,12 +6,64 @@ from aiogram.filters import CommandStart, Command
 from aiogram.types import Message, FSInputFile
 from config import TOKEN, WEATHER_API_KEY
 import random
-
+from gtts import gTTS
 # Создаем объект бота с использованием токена, который был задан в файле config.py
 bot = Bot(token=TOKEN)
-
 # Создаем объект диспетчера для обработки входящих сообщений и команд
 dp = Dispatcher()
+
+@dp.message(Command('training'))
+async def training(message: Message):
+    training_list = [
+       "Тренировка 1:\n1. Скручивания: 3 подхода по 15 повторений\n2. Велосипед: 3 подхода по 20 повторений (каждая сторона)\n3. Планка: 3 подхода по 30 секунд",
+       "Тренировка 2:\n1. Подъемы ног: 3 подхода по 15 повторений\n2. Русский твист: 3 подхода по 20 повторений (каждая сторона)\n3. Планка с поднятой ногой: 3 подхода по 20 секунд (каждая нога)",
+       "Тренировка 3:\n1. Скручивания с поднятыми ногами: 3 подхода по 15 повторений\n2. Горизонтальные ножницы: 3 подхода по 20 повторений\n3. Боковая планка: 3 подхода по 20 секунд (каждая сторона)"
+    ]
+    rand_tr = random.choice(training_list)
+    await message.answer(f"Это ваша мини-тренировка на сегодня {rand_tr}")
+
+    # tts = gTTS(text=rand_tr, lang='ru')
+    # tts.save('training.mp3')
+    # audio = FSInputFile('training.mp3')
+    # await bot.send_audio(message.chat.id, audio)
+    # os.remove("training.mp3")
+
+    tts = gTTS(text=rand_tr, lang='ru')
+    tts.save("training.ogg")
+    audio = FSInputFile("training.ogg")
+    await bot.send_voice(chat_id=message.chat.id, voice=audio)
+    os.remove("training.ogg")
+
+
+
+
+
+
+@dp.message(Command('audio'))
+async def audio(message: Message):
+    await bot.send_chat_action(message.chat.id, 'upload_audio')
+    audio = FSInputFile('40627.mp3')
+    await bot.send_audio(message.chat.id, audio)
+
+
+@dp.message(Command('video'))
+async def video(message: Message):
+    await bot.send_chat_action(message.chat.id, 'upload_video')
+    video = FSInputFile('video.mp4')
+    await bot.send_video(message.chat.id,video)
+
+@dp.message(Command('voice'))
+async def voice(message: Message):
+    voice = FSInputFile('voice.ogg')
+    await bot.send_voice(message.chat.id, voice)
+    #await message.answer_voice(voice)
+
+@dp.message(Command('doc'))
+async def doc(message: Message):
+    doc = FSInputFile("TG02.pdf")
+    await bot.send_document(message.chat.id, doc)
+
+
 
 # Указываем путь к папке, где хранятся изображения
 # os.path.join() объединяет директории и текущий файл, чтобы сформировать абсолютный путь
@@ -20,7 +72,7 @@ IMAGE_DIR = os.path.join(os.path.dirname(__file__), '')
 
 # Обработчик команды /photo
 # Когда пользователь отправляет команду /photo, эта функция выбирает случайное изображение из заданной папки и отправляет его пользователю
-@dp.message(Command('photo'))
+@dp.message(Command('photo',prefix='!'))
 async def photo(message: Message):
     # Определяем допустимые форматы изображений
     supported_formats = ('.jpg', '.jpeg', '.png', '.gif')
@@ -83,6 +135,7 @@ async def weather(message: Message):
 async def react_photo(message: Message):
     responses = ["Красивое фото", "😊", "Спасибо", "Хорошее фото"]
     await message.answer(random.choice(responses))
+    await bot.download(message.photo[-1], destination=f'tmp/{message.photo[-1].file_id}.jpg')
 
 # Обработчик команды /help
 # Отправляет пользователю список доступных команд и их описание
@@ -95,6 +148,36 @@ async def help(message: Message):
 @dp.message(CommandStart())
 async def start(message: Message):
     await message.answer(f"Привет, {message.from_user.full_name}!")
+
+#
+# @dp.message()
+# async def start(message: Message):
+#     await message.answer(f"Я тебе ответил, {message.from_user.full_name}!")
+#
+@dp.message()
+async def start(message: Message):
+    if message.text.lower() == 'test':
+        await message.answer('Тестируем')
+
+# @dp.message()
+# async def echo(message: Message):
+#     await message.send_copy(chat_id=message.chat.id)
+
+
+#
+# @dp.message(Command('video'))
+# async def video(message: Message):
+#     await bot.send_chat_action(message.chat.id, 'upload_video')
+#     video = FSInputFile('video.mp4')
+#     await bot.send_video(message.chat.id,video)
+
+#
+# @dp.message(Command('audio'))
+# async def audio(message: Message):
+#     await bot.send_chat_action(message.chat.id, 'upload_audio')
+#     audio = FSInputFile('40627.mp3')
+#     await bot.send_audio(message.chat.id, audio)
+
 
 # Главная асинхронная функция, которая запускает процесс опроса (polling) от Telegram.
 # Polling - это метод, при котором бот постоянно проверяет наличие новых сообщений от пользователей
